@@ -1,0 +1,33 @@
+version: "3"
+
+services:
+  database:
+    image: "yugabytedb/yugabyte:2.4.4.0-b7"
+    command: "/home/yugabyte/bin/yugabyted start --daemon=false"
+    environment:
+      SERVICE_5433_NAME: ysql
+    ports:
+      - 5433:5433
+      - 7000:7000
+    volumes:
+      - ./database-data:/home/yugabyte/var
+    
+  backend-app:
+    build: ./fruitseller
+    container_name: backend-app
+    environment:
+      DB_SERVER: database
+    ports:
+      - 8080:8080
+    depends_on:
+      - database
+
+  ui:
+    build: ./fruitseller-ui
+    container_name: ui
+    environment:
+      WEB_SERVER: backend-app
+    ports:
+      - 3000:3000
+    depends_on:
+      - backend-app
